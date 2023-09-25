@@ -3,13 +3,9 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Create the user
-    $createUserCommand = "sudo useradd -m -s /bin/bash $username 2>&1";
+    // Create the user and change the password using sudo -S to provide the password
+    $createUserCommand = "echo '$password' | sudo -S useradd -m -s /bin/bash $username 2>&1";
     $createUserOutput = shell_exec($createUserCommand);
-
-    // Change the password
-    $passwordChangeCommand = "echo '$username:$password' | sudo chpasswd 2>&1";
-    $passwordChangeOutput = shell_exec($passwordChangeCommand);
 
     // Check if the user was created and password changed successfully
     $userExistsCommand = "id $username";
@@ -18,12 +14,13 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
     if (!empty($userExistsOutput)) {
         echo "User $username created and password set.";
     } else {
-        echo "Error creating user $username or setting password: $createUserOutput $passwordChangeOutput";
+        echo "Error creating user $username or setting password: $createUserOutput";
     }
 } else {
     echo "Please fill out both username and password fields.";
 }
 ?>
+
 
 <!DOCTYPE html>
 <html>
@@ -71,7 +68,7 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
 </head>
 <body>
     <h2>Create User</h2>
-    <form method="post" action="create_user.php">
+    <form method="post" action="">
         <label for="username">Username:</label>
         <input type="text" name="username" id="username" required><br><br>
 
