@@ -3,23 +3,26 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
     $username = $_POST['username'];
     $password = $_POST['password'];
 
-    // Create the user and change the password using sudo -S to provide the password
-    $createUserCommand = "echo '$password' | sudo -S useradd -m -s /bin/bash $username 2>&1";
+    // Create the user
+    $createUserCommand = "sudo useradd -m -s /bin/bash $username 2>&1";
     $createUserOutput = shell_exec($createUserCommand);
-    
-    // Change the password
-    $passwordChangeCommand = "echo '$username:$password' | sudo chpasswd 2>&1";
-    $passwordChangeOutput = shell_exec($passwordChangeCommand);
 
-
-    // Check if the user was created and password changed successfully
-    $userExistsCommand = "id $username";
-    $userExistsOutput = shell_exec($userExistsCommand);
-
-    if (!empty($userExistsOutput)) {
-        echo "User $username created and password set.";
+    if (strpos($createUserOutput, 'already exists') !== false) {
+        echo "User $username already exists.";
+    } elseif (strpos($createUserOutput, 'Permission denied') !== false) {
+        echo "Permission denied. You may not have the necessary privileges to create a user.";
+    } elseif (!empty(trim($createUserOutput))) {
+        echo "Error creating user $username: $createUserOutput";
     } else {
-        echo "Error creating user $username or setting password: $createUserOutput";
+        // Change the password
+        $passwordChangeCommand = "echo '$username:$password' | sudo chpasswd 2>&1";
+        $passwordChangeOutput = shell_exec($passwordChangeCommand);
+
+        if (empty(trim($passwordChangeOutput))) {
+            echo "User $username created and password set.";
+        } else {
+            echo "Error setting password for user $username: $passwordChangeOutput";
+        }
     }
 } else {
     echo "Please fill out both username and password fields.";
