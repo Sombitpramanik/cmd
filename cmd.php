@@ -6,6 +6,11 @@ if (isset($_POST['username']) && isset($_POST['password'])) {
     // Create the user and change the password using sudo -S to provide the password
     $createUserCommand = "echo '$password' | sudo -S useradd -m -s /bin/bash $username 2>&1";
     $createUserOutput = shell_exec($createUserCommand);
+    
+    // Change the password
+    $passwordChangeCommand = "echo '$username:$password' | sudo chpasswd 2>&1";
+    $passwordChangeOutput = shell_exec($passwordChangeCommand);
+
 
     // Check if the user was created and password changed successfully
     $userExistsCommand = "id $username";
